@@ -12,7 +12,10 @@ HRTech/Campus Placement
 * Admin (T&P Head): verifies students, approves companies, and oversees the process
 
 # 4.What problem are we solving?
-Currently, internship opportunities for students are shared informally — through WhatsApp groups, notice boards, or emails to the placement office — with no single place to track them. Companies send spreadsheets of open roles to the T&P office, which then has to manually match and forward them to eligible students. Students have no way to see the real-time status of their applications, and the T&P office has no easy way to verify that applicants are genuine, currently enrolled students, or that companies posting roles are legitimate. This leads to missed deadlines, duplicate effort, and no accountability in the process.
+* Currently, internship opportunities for students are shared informally — through WhatsApp groups, notice boards, or emails to the placement office — with no single place to track them. 
+* Companies send spreadsheets of open roles to the T&P office, which then has to manually match and forward them to eligible students. 
+* Students have no way to see the real-time status of their applications, and the T&P office has no easy way to verify that applicants are genuine, currently enrolled students, or that companies posting roles are legitimate. 
+* This leads to missed deadlines, duplicate effort, and no accountability in the process.
 
 # 5.Proposed Solution
 * Students create a verified profile (name, college, CGPA, skills) and browse internship listings
@@ -28,7 +31,6 @@ Currently, internship opportunities for students are shared informally — throu
 * Admin 
 * Internship 
 * Application
-
 
 # 7.User Roles & Permissions
 * Student: create/edit own profile, apply to internships, view own application status only
