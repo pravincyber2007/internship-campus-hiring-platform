@@ -42,11 +42,13 @@ HRTech/Campus Placement
 - A company should be able to view all applicants for a posting in a single screen without manual cross-checking
 - Admin should be able to approve or reject a company registration in under 1 minute
 
+
 # 9.Out of Scope
 - Not an assessment/skill-testing portal — no coding tests, quizzes, or automated evaluation
 - Only tracks applications end-to-end; does not process payments or stipends
 - No in-app chat/messaging between students and companies (email notification only)
 - No mobile app — web only
+
 
 # 10.Chosen Track
 Python (FastAPI)
