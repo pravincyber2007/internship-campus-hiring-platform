@@ -8,8 +8,11 @@ from app.models import Company
 from app.models import Application
 
 
+from app.api.students import router as student_router
+
 Base.metadata.create_all(bind=engine)
 app=FastAPI()
+app.include_router(student_router)
 @app.get("/")
 def home():
     return {"message":"sever is running and all database tables are created!"}
