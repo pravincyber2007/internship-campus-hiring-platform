@@ -5,8 +5,9 @@ class CompanyCreate(BaseModel):
     name: str
     email: EmailStr
     password: str
-    industry: Optional[str] = None
-    description: Optional[str] = None
+    industry: Optional[str] = "General"
+    description: Optional[str] = "None"
+    
 
 class CompanyResponse(BaseModel):
     company_id: int

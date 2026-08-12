@@ -2,16 +2,22 @@ import axios from 'axios';
 
 const API_URL = 'http://localhost:8000/api';
 
-// Company Auth (Expects JSON body based on 400 Bad Request error)
+// Company Auth (Sends Form Data for OAuth2 compatibility like Student)
 export const registerCompany = async (data) => {
   return await axios.post(`${API_URL}/companies/register`, data);
 };
 
-export const loginCompany = async (data) => {
-  return await axios.post(`${API_URL}/companies/login`, data);
+export const loginCompany = async (credentials) => {
+  const formData = new URLSearchParams();
+  formData.append('username', credentials.email);
+  formData.append('password', credentials.password);
+  
+  return await axios.post(`${API_URL}/companies/login`, formData, {
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+  });
 };
 
-// Student Auth (Expects Form Data)
+// Student Auth
 export const registerStudent = async (data) => {
   return await axios.post(`${API_URL}/students/register`, data);
 };
@@ -26,7 +32,7 @@ export const loginStudent = async (credentials) => {
   });
 };
 
-// Internships (Changed from /internships/ to /internships based on 404 Not Found error)
+// Internships
 export const postInternship = async (data, token) => {
   return await axios.post(`${API_URL}/internships/post`, data, {
     headers: { Authorization: `Bearer ${token}` }
