@@ -1,16 +1,12 @@
-from sqlalchemy import Column, Integer, String, Boolean, Float, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, Text, ForeignKey
 from app.core.database import Base
-class Student(Base):
-    __tablename__ = "students"
 
-    student_id=Column(Integer, primary_key=True, index=True)
-    name=Column(String,nullable=False)
-    email=Column(String,unique=True,nullable=False)
-    hashed_password=Column(String,nullable=False)
-    college_name=Column(String,nullable=False)
-    cgpa=Column(Float,nullable=False)
-    skills=Column(String,nullable=False)
-    is_verified=Column(Boolean,default=False)
-
-    verified_by=Column(Integer,ForeignKey("admins.admin_id"),nullable=True)
+class StudentProfile(Base):
+    __tablename__ = "student_profiles"
     
+    profile_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"), unique=True, nullable=False)
+    college_code = Column(String(4), ForeignKey("admin_profiles.college_code", ondelete="CASCADE"), nullable=False)
+    name = Column(String(255), nullable=False)
+    cgpa = Column(Float)
+    skills = Column(Text)

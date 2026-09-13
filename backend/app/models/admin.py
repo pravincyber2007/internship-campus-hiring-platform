@@ -1,9 +1,10 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, ForeignKey
 from app.core.database import Base
-class Admin(Base):
-    __tablename__ = "admins"
 
-    admin_id=Column(Integer, primary_key=True, index=True)
-    name=Column(String,nullable=False)
-    email=Column(String,unique=True,nullable=False)
-    hashed_password=Column(String,nullable=False)
+class AdminProfile(Base):
+    __tablename__ = "admin_profiles"
+    
+    profile_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"), unique=True, nullable=False)
+    college_code = Column(String(4), unique=True, nullable=False)
+    college_name = Column(String(255), nullable=False)
