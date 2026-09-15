@@ -1,20 +1,26 @@
 from fastapi import FastAPI
 from app.core.database import engine, Base
 
-# Import enterprise models to register metadata
-import app.models.user
-import app.models.student_profile
-import app.models.company_profile
-import app.models.admin_profile
-import app.models.internship
-import app.models.application
+# 1. Import all your modular API routers
+from app.api import auth, admin, student, company, internship, applications
 
-app = FastAPI(title="Campus Placement API - DB Setup")
+# Automatically create database tables if they don't exist
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI(
+    title="Campus Internship Portal API",
+    description="Backend API for managing campus internships, student tracking via college code 3807, and applications.",
+    version="1.0.0"
+)
+
+# 2. Register every router into the FastAPI app instance
+app.include_router(auth.router)
+app.include_router(admin.router)
+app.include_router(student.router)
+app.include_router(company.router)
+app.include_router(internship.router)
+app.include_router(applications.router)
 
 @app.get("/")
-def home():
-    return {"message": "Database-first setup active"}
-
-@app.on_event("startup")
-def startup_db_client():
-    Base.metadata.create_all(bind=engine)
+def root():
+    return {"message": "Campus Internship Portal Backend is running successfully!"}
