@@ -15,3 +15,11 @@ elif DATABASE_URL.startswith("postgresql://") and not DATABASE_URL.startswith("p
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
+
+# 3. Add back the missing get_db dependency function
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
