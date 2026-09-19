@@ -1,23 +1,19 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.core.database import engine, Base
 from app.api import auth, student, internship, admin, applications, profiles
-
-# Automatically create all database tables in PostgreSQL on startup
-Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Campus Internship Platform API", version="1.0.0")
 
 # Enable CORS for frontend integration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows requests from any frontend domain (like your Vercel app)
+    allow_origins=["*"],  # Allows requests from any frontend domain
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Include all feature routers
+# Include all feature routers safely
 app.include_router(auth.router, prefix="/api/auth", tags=["Auth"])
 app.include_router(student.router, prefix="/api/student", tags=["Student"])
 app.include_router(internship.router, prefix="/api/internship", tags=["Internship"])
