@@ -1,47 +1,20 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8000/api';
+const API = axios.create({
+    baseURL: 'http://127.0.0.1:8000',
+    headers: {
+        'Content-Type': 'application/json',
+    },
+});
 
-// Company Auth (Sends Form Data for OAuth2 compatibility like Student)
-export const registerCompany = async (data) => {
-  return await axios.post(`${API_URL}/companies/register`, data);
-};
+// Single unified registration call handling both user table and profiles
+export const registerUser = (userData) => API.post('/auth/register', userData);
 
-export const loginCompany = async (credentials) => {
-  const formData = new URLSearchParams();
-  formData.append('username', credentials.email);
-  formData.append('password', credentials.password);
-  
-  return await axios.post(`${API_URL}/companies/login`, formData, {
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-  });
-};
+export const getStudentProfile = (userId) => API.get(`/students/profile/${userId}`);
+export const getInternships = () => API.get('/internships/');
+export const postInternship = (internshipData) => API.post('/internships/', internshipData);
+export const applyForInternship = (applicationData) => API.post('/applications/', applicationData);
+export const getStudentApplications = (studentId) => API.get(`/applications/student/${studentId}`);
+export const getCollegeStudents = (collegeCode) => API.get(`/admin/students/${collegeCode}`);
 
-// Student Auth
-export const registerStudent = async (data) => {
-  return await axios.post(`${API_URL}/students/register`, data);
-};
-
-export const loginStudent = async (credentials) => {
-  const formData = new URLSearchParams();
-  formData.append('username', credentials.email);
-  formData.append('password', credentials.password);
-  
-  return await axios.post(`${API_URL}/students/login`, formData, {
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-  });
-};
-
-// Internships
-export const postInternship = async (data, token) => {
-  return await axios.post(`${API_URL}/internships/post`, data, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-};
-
-export const getInternships = async () => {
-  const token = localStorage.getItem('token');
-  return await axios.get(`${API_URL}/internships/`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-};
+export default API;

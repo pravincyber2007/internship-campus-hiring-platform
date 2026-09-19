@@ -8,5 +8,6 @@ class StudentProfile(Base):
     user_id = Column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"), unique=True, nullable=False)
     college_code = Column(String(4), ForeignKey("admin_profiles.college_code", ondelete="CASCADE"), nullable=False)
     name = Column(String(255), nullable=False)
+    college_name = Column(String(255))
     cgpa = Column(Float)
     skills = Column(Text)

@@ -1,26 +1,24 @@
 from fastapi import FastAPI
-from app.core.database import engine, Base
+from fastapi.middleware.cors import CORSMiddleware
+from app.api import auth, student, internship, admin, applications, profiles
 
-# 1. Import all your modular API routers
-from app.api import auth, admin, student, company, internship, applications
+app = FastAPI(title="Internship Campus Hiring Platform")
 
-# Automatically create database tables if they don't exist
-Base.metadata.create_all(bind=engine)
-
-app = FastAPI(
-    title="Campus Internship Portal API",
-    description="Backend API for managing campus internships, student tracking via college code 3807, and applications.",
-    version="1.0.0"
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-# 2. Register every router into the FastAPI app instance
 app.include_router(auth.router)
-app.include_router(admin.router)
 app.include_router(student.router)
-app.include_router(company.router)
 app.include_router(internship.router)
+app.include_router(admin.router)
 app.include_router(applications.router)
+app.include_router(profiles.router)
 
 @app.get("/")
-def root():
-    return {"message": "Campus Internship Portal Backend is running successfully!"}
+def read_root():
+    return {"message": "CampusHire API is running successfully"}

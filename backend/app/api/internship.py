@@ -1,34 +1,49 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
 from app.core.database import get_db
-from app.models.internship import Internship
 from app.models.company import CompanyProfile
-from app.schemas.internship_schema import InternshipCreate, InternshipResponse
+from app.models.internship import Internship
+from pydantic import BaseModel
 
 router = APIRouter(prefix="/internships", tags=["Internships"])
 
-@router.post("/", response_model=InternshipResponse)
-def post_internship(internship: InternshipCreate, db: Session = Depends(get_db)):
-    # Verify company profile exists
-    company = db.query(CompanyProfile).filter(CompanyProfile.profile_id == internship.company_id).first()
+class InternshipCreate(BaseModel):
+    user_id: int
+    title: str
+    domain: str
+    stipend: int
+    duration: str
+
+@router.post("/")
+def post_internship(payload: InternshipCreate, db: Session = Depends(get_db)):
+    company = db.query(CompanyProfile).filter(CompanyProfile.user_id == payload.user_id).first()
     if not company:
-        raise HTTPException(status_code=404, detail="Company profile not found")
-        
+        raise HTTPException(status_code=404, detail="Company profile not found for this user")
+
     new_internship = Internship(
-        company_id=internship.company_id,
-        title=internship.title,
-        domain=internship.domain,
-        stipend=internship.stipend,
-        duration=internship.duration
+        company_id=company.profile_id,
+        title=payload.title,
+        domain=payload.domain,
+        stipend=payload.stipend,
+        duration=payload.duration
     )
-    
     db.add(new_internship)
     db.commit()
     db.refresh(new_internship)
-    return new_internship
+    return {"message": "Internship posted successfully", "internship_id": new_internship.internship_id}
 
-@router.get("/", response_model=List[InternshipResponse])
+@router.get("/")
 def get_all_internships(db: Session = Depends(get_db)):
-    # Students browse all open internship listings
-    return db.query(Internship).all()
+    internships = db.query(Internship).all()
+    results = []
+    for i in internships:
+        company = db.query(CompanyProfile).filter(CompanyProfile.profile_id == i.company_id).first()
+        results.append({
+            "internship_id": i.internship_id,
+            "title": i.title,
+            "domain": i.domain,
+            "stipend": i.stipend,
+            "duration": i.duration,
+            "company_name": company.name if company else "Independent Company"
+        })
+    return results
