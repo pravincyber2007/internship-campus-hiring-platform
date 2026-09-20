@@ -35,8 +35,8 @@ export default function AuthPage({ isAuthenticated, userRole, onLogout, onLoginS
 
     try {
       if (!isLogin) {
-        // --- Registration Request ---
-        await API.post('/auth/register', {
+        // --- Registration Request (Added /api prefix) ---
+        await API.post('/api/auth/register', {
           email: formData.email,
           password: formData.password,
           role: formData.role,
@@ -53,8 +53,8 @@ export default function AuthPage({ isAuthenticated, userRole, onLogout, onLoginS
         setMessage("Account registered successfully! Please sign in.");
         setIsLogin(true);
       } else {
-        // --- Secure Login Request ---
-        const response = await API.post('/auth/login', {
+        // --- Secure Login Request (Added /api prefix) ---
+        const response = await API.post('/api/auth/login', {
           email: formData.email,
           password: formData.password
         });
