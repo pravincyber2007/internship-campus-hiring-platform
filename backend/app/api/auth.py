@@ -9,7 +9,8 @@ from app.models.admin import AdminProfile
 from app.schemas.user_schema import UnifiedRegisterSchema
 from pydantic import BaseModel, EmailStr
 
-router = APIRouter(prefix="/auth", tags=["Auth"])
+# Removed prefix="/auth" so it doesn't double up with main.py's "/api/auth"
+router = APIRouter(tags=["Auth"])
 
 # CryptContext setup for secure password hashing (bcrypt)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
