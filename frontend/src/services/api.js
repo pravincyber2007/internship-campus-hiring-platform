@@ -1,7 +1,10 @@
 import axios from 'axios';
 
+// Dynamically use Vercel's config variable, with the live Railway backend as a bulletproof fallback
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://internship-campus-hiring-platform-production.up.railway.app';
+
 const API = axios.create({
-    baseURL: 'http://127.0.0.1:8000',
+    baseURL: API_BASE_URL,
     headers: {
         'Content-Type': 'application/json',
     },
