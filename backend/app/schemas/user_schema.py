@@ -23,7 +23,7 @@ class UnifiedRegisterSchema(BaseModel):
     
     # Optional profile fields depending on role
     name: Optional[str] = None
-    college_code: Optional[str] = None  # Removed hardcoded 3807 default
+    college_code: Optional[str] = None  
     college_name: Optional[str] = None
     cgpa: Optional[float] = None
     skills: Optional[str] = None

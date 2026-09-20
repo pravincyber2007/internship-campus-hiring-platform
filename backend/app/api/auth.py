@@ -9,7 +9,6 @@ from app.models.admin import AdminProfile
 from app.schemas.user_schema import UnifiedRegisterSchema
 from pydantic import BaseModel, EmailStr
 
-# Removed prefix="/auth" so it doesn't double up with main.py's "/api/auth"
 router = APIRouter(tags=["Auth"])
 
 # CryptContext setup for secure password hashing (bcrypt)
@@ -27,10 +26,10 @@ def register_user(payload: UnifiedRegisterSchema, db: Session = Depends(get_db))
         raise HTTPException(status_code=400, detail="Email is already registered")
 
     try:
-        # 1. Hash the password securely into an unreadable format
+        # 1. Hash the password securely
         hashed_password = pwd_context.hash(payload.password)
 
-        # 2. Create Core User with hashed password
+        # 2. Create Core User
         new_user = User(
             email=payload.email,
             password_hash=hashed_password,  
@@ -51,6 +50,7 @@ def register_user(payload: UnifiedRegisterSchema, db: Session = Depends(get_db))
                 skills=payload.skills
             )
             db.add(student_profile)
+            
         elif payload.role == "company":
             company_profile = CompanyProfile(
                 user_id=new_user.user_id,
@@ -58,9 +58,11 @@ def register_user(payload: UnifiedRegisterSchema, db: Session = Depends(get_db))
                 industry=payload.industry or "Technology"
             )
             db.add(company_profile)
+            
         elif payload.role == "admin":
             admin_profile = AdminProfile(
                 user_id=new_user.user_id,
+                name=payload.admin_name or "Placement Officer",  # Using admin_name from your schema
                 college_code=payload.college_code or "",
                 college_name=payload.college_name or "Institution"
             )
