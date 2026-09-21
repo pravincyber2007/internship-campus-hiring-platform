@@ -42,8 +42,8 @@ export default function CompanyDashboard({ isAuthenticated, userRole, onLogout }
         
         setCompanyName('Recruiter');
 
-        // Fetch all internships directly and filter by the logged-in user's ID
-        const listRes = await API.get('/api/internships/');
+        // FIXED: Changed from /api/internships/ to /api/internship (singular)
+        const listRes = await API.get('/api/internship');
         const compInternships = listRes.data.filter(i => String(i.user_id) === String(userId));
         setInternships(compInternships);
       } catch (err) {
@@ -66,7 +66,8 @@ export default function CompanyDashboard({ isAuthenticated, userRole, onLogout }
     }
 
     try {
-      await API.post('/api/internships/', {
+      // FIXED: Changed from /api/internships/ to /api/internship (singular)
+      await API.post('/api/internship', {
         user_id: parseInt(userId, 10),
         title: formData.title,
         domain: formData.domain,

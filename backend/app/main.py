@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import auth, student, internship, admin, applications, profiles
+from app.api import auth, student, internship, admin, applications, profiles ,company
 
 app = FastAPI(title="Campus Internship Platform API", version="1.0.0")
 
