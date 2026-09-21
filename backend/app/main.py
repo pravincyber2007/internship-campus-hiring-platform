@@ -20,7 +20,7 @@ app.include_router(internship.router, prefix="/api/internship", tags=["Internshi
 app.include_router(admin.router, prefix="/api/admin", tags=["Admin"])
 app.include_router(applications.router, prefix="/api/applications", tags=["Applications"])
 app.include_router(profiles.router, prefix="/api/profiles", tags=["Profiles"])
-
+app.include_router(company.router, prefix="/api/company", tags=["Company"])
 @app.get("/")
 def read_root():
     return {"message": "Campus Internship Platform Backend is Live!"}

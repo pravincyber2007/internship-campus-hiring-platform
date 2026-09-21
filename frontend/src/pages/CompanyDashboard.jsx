@@ -40,17 +40,28 @@ export default function CompanyDashboard({ isAuthenticated, userRole, onLogout }
           return;
         }
         
-        // Added /api/ prefix
-        const profileRes = await API.get(`/api/profiles/company/user/${userId}`);
-        setCompanyName(profileRes.data.name);
+        // CHANGED: Ensure this matches your exact backend route prefix 
+        // (e.g., if your backend uses /api/company/user/ or /api/profiles/)
+        let profileId = null;
+        try {
+          const profileRes = await API.get(`/api/company/user/${userId}`);
+          setCompanyName(profileRes.data.name || 'Recruiter');
+          profileId = profileRes.data.profile_id || profileRes.data.id;
+        } catch (profileErr) {
+          console.warn("Could not fetch company profile directly, trying fallback route:", profileErr);
+          // Fallback if your route uses a different path structure
+          const fallbackRes = await API.get(`/api/profiles/company/user/${userId}`);
+          setCompanyName(fallbackRes.data.name || 'Recruiter');
+          profileId = fallbackRes.data.profile_id || fallbackRes.data.id;
+        }
 
-        // Added /api/ prefix
+        // Fetch all internships and filter by this company's ID
         const listRes = await API.get('/api/internships/');
-        const compInternships = listRes.data.filter(i => i.company_id === profileRes.data.profile_id);
+        const compInternships = listRes.data.filter(i => i.company_id === profileId || i.user_id === parseInt(userId, 10));
         setInternships(compInternships);
       } catch (err) {
         console.error("Dashboard fetch error:", err);
-        setError("Could not load company dashboard data.");
+        setError("Could not load company dashboard data. Please check your backend connection.");
       }
     };
     fetchCompanyData();
@@ -68,7 +79,6 @@ export default function CompanyDashboard({ isAuthenticated, userRole, onLogout }
     }
 
     try {
-      // Added /api/ prefix
       await API.post('/api/internships/', {
         user_id: parseInt(userId, 10),
         title: formData.title,
@@ -86,7 +96,6 @@ export default function CompanyDashboard({ isAuthenticated, userRole, onLogout }
   const handleSelectInternship = async (internship) => {
     setSelectedInternship(internship);
     try {
-      // Added /api/ prefix
       const res = await API.get(`/api/applications/internship/${internship.internship_id}/applicants`);
       setApplicants(res.data);
     } catch {
@@ -96,7 +105,6 @@ export default function CompanyDashboard({ isAuthenticated, userRole, onLogout }
 
   const handleStatusChange = async (applicationId, newStatus) => {
     try {
-      // Added /api/ prefix
       await API.put(`/api/applications/${applicationId}/status`, { status: newStatus });
       const res = await API.get(`/api/applications/internship/${selectedInternship.internship_id}/applicants`);
       setApplicants(res.data);
@@ -117,10 +125,10 @@ export default function CompanyDashboard({ isAuthenticated, userRole, onLogout }
         </div>
 
         <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
-          <button onClick={() => { setActiveTab('post'); setSelectedInternship(null); }} style={{ padding: '0.75rem 1.5rem', borderRadius: '8px', border: 'none', background: activeTab === 'post' ? '#2563eb' : '#fff', color: activeTab === 'post' ? '#fff' : '#334155', fontWeight: '600', cursor: 'pointer', border: activeTab === 'post' ? 'none' : '1px solid #cbd5e1' }}>
+          <button onClick={() => { setActiveTab('post'); setSelectedInternship(null); }} style={{ padding: '0.75rem 1.5rem', borderRadius: '8px', border: activeTab === 'post' ? 'none' : '1px solid #cbd5e1', background: activeTab === 'post' ? '#2563eb' : '#fff', color: activeTab === 'post' ? '#fff' : '#334155', fontWeight: '600', cursor: 'pointer' }}>
             ➕ Post Internship
           </button>
-          <button onClick={() => setActiveTab('list')} style={{ padding: '0.75rem 1.5rem', borderRadius: '8px', border: 'none', background: activeTab === 'list' ? '#2563eb' : '#fff', color: activeTab === 'list' ? '#fff' : '#334155', fontWeight: '600', cursor: 'pointer', border: activeTab === 'list' ? 'none' : '1px solid #cbd5e1' }}>
+          <button onClick={() => setActiveTab('list')} style={{ padding: '0.75rem 1.5rem', borderRadius: '8px', border: activeTab === 'list' ? 'none' : '1px solid #cbd5e1', background: activeTab === 'list' ? '#2563eb' : '#fff', color: activeTab === 'list' ? '#fff' : '#334155', fontWeight: '600', cursor: 'pointer' }}>
             📂 Our Internships
           </button>
         </div>
