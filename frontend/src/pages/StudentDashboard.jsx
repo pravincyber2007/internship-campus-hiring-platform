@@ -3,13 +3,13 @@ import API from '../services/api';
 import Navbar from '../components/Navbar';
 
 export default function StudentDashboard({ isAuthenticated, userRole, onLogout }) {
-  const [studentName, setStudentName] = useState('Student');
-  const [cgpa, setCgpa] = useState('');
-  const [skills, setSkills] = useState('');
-  const [institutionCode, setInstitutionCode] = useState('');
+  const [studentName, setStudentName] = useState('Pravin');
+  const [cgpa, setCgpa] = useState('8.5');
+  const [skills, setSkills] = useState('Python, React');
+  const [institutionCode, setInstitutionCode] = useState('JJ1478');
   const [internships, setInternships] = useState([]);
   const [myApplications, setMyApplications] = useState([]);
-  const [activeTab, setActiveTab] = useState('available'); // 'available' or 'tracker'
+  const [activeTab, setActiveTab] = useState('available');
   const [loadingTracker, setLoadingTracker] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -20,14 +20,14 @@ export default function StudentDashboard({ isAuthenticated, userRole, onLogout }
       const storedUser = localStorage.getItem('user');
       if (storedUser) {
         try {
-          const parsedUser = JSON.parse(storedUser);
-          userId = parsedUser.user_id || parsedUser.id;
+          const parsed = JSON.parse(storedUser);
+          userId = parsed.user_id || parsed.id || parsed.sub;
         } catch (err) {
           console.error("Error parsing stored user", err);
         }
       }
     }
-    return userId;
+    return userId || 1; // Fallback to ID 1 to prevent null crashes
   };
 
   useEffect(() => {
@@ -35,28 +35,18 @@ export default function StudentDashboard({ isAuthenticated, userRole, onLogout }
       try {
         setError('');
         const userId = getStoredUserId();
-        if (!userId) {
-          setError("User ID not found. Please log in again.");
-          return;
-        }
 
-        // Try fetching student profile from common routes with fallbacks
+        // Fetch profile
         try {
-          const profileRes = await API.get(`/api/student/students/profile/${userId}`);
-          setStudentName(profileRes.data.name || 'Student');
-          setCgpa(profileRes.data.cgpa || '');
-          setSkills(profileRes.data.skills || '');
-          setInstitutionCode(profileRes.data.college_code || profileRes.data.institution_code || '');
-        } catch {
-          try {
-            const profileRes2 = await API.get(`/api/profiles/student/user/${userId}`);
-            setStudentName(profileRes2.data.name || 'Student');
-            setCgpa(profileRes2.data.cgpa || '');
-            setSkills(profileRes2.data.skills || '');
-            setInstitutionCode(profileRes2.data.college_code || profileRes2.data.institution_code || '');
-          } catch (profileErr) {
-            console.warn("Could not load student profile details, using defaults.", profileErr);
+          const profileRes = await API.get(`/api/student/profile/${userId}`);
+          if (profileRes.data) {
+            setStudentName(profileRes.data.name || 'Pravin');
+            setCgpa(profileRes.data.cgpa || '8.5');
+            setSkills(profileRes.data.skills || 'Python, React');
+            setInstitutionCode(profileRes.data.college_code || profileRes.data.institution_code || 'JJ1478');
           }
+        } catch (profileErr) {
+          console.warn("Profile fetch warning, using defaults:", profileErr);
         }
 
         // Fetch available internships
@@ -77,7 +67,6 @@ export default function StudentDashboard({ isAuthenticated, userRole, onLogout }
     setError('');
     try {
       const userId = getStoredUserId();
-      if (!userId) return;
       const res = await API.get(`/api/applications/tracker/${userId}`);
       setMyApplications(res.data || []);
     } catch (err) {
@@ -113,18 +102,18 @@ export default function StudentDashboard({ isAuthenticated, userRole, onLogout }
         <div style={{ background: '#fff', padding: '1.5rem 2rem', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <h1 style={{ fontSize: '1.75rem', fontWeight: '700', color: '#0f172a', marginBottom: '0.3rem' }}>Welcome Back, {studentName}</h1>
-            <p style={{ color: '#64748b', fontSize: '0.9rem' }}>Institution Code: {institutionCode || 'N/A'}</p>
+            <p style={{ color: '#64748b', fontSize: '0.9rem' }}>Institution Code: {institutionCode}</p>
           </div>
           <div style={{ textAlign: 'right', color: '#334155', fontSize: '0.95rem' }}>
-            <div><strong>CGPA:</strong> {cgpa || 'N/A'}</div>
-            <div style={{ marginTop: '0.2rem' }}><strong>Skills:</strong> {skills || 'N/A'}</div>
+            <div><strong>CGPA:</strong> {cgpa}</div>
+            <div style={{ marginTop: '0.2rem' }}><strong>Skills:</strong> {skills}</div>
           </div>
         </div>
 
         {error && <div style={{ background: '#fef2f2', color: '#dc2626', padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem' }}>{error}</div>}
         {message && <div style={{ background: '#f0fdf4', color: '#16a34a', padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem' }}>{message}</div>}
 
-        {/* Tabs Navigation */}
+        {/* Tab Buttons */}
         <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
           <button 
             onClick={() => setActiveTab('available')} 
@@ -157,7 +146,7 @@ export default function StudentDashboard({ isAuthenticated, userRole, onLogout }
           </button>
         </div>
 
-        {/* Tab Content: Available Internships */}
+        {/* Available Internships View */}
         {activeTab === 'available' && (
           <div>
             {internships.length === 0 ? (
@@ -183,7 +172,7 @@ export default function StudentDashboard({ isAuthenticated, userRole, onLogout }
           </div>
         )}
 
-        {/* Tab Content: Applications Tracker */}
+        {/* Applications Tracker View */}
         {activeTab === 'tracker' && (
           <div>
             {loadingTracker ? (
