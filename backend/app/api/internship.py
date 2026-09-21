@@ -5,7 +5,6 @@ from app.models.company import CompanyProfile
 from app.models.internship import Internship
 from pydantic import BaseModel
 
-# No duplicate prefix here so it maps precisely to /api/internship from main.py
 router = APIRouter(tags=["Internships"])
 
 class InternshipCreate(BaseModel):
@@ -15,8 +14,8 @@ class InternshipCreate(BaseModel):
     stipend: int
     duration: str
 
-@router.post("")
-@router.post("/")
+@router.post("/internship")
+@router.post("/internship/")
 def post_internship(payload: InternshipCreate, db: Session = Depends(get_db)):
     company = db.query(CompanyProfile).filter(CompanyProfile.user_id == payload.user_id).first()
     if not company:
@@ -34,8 +33,8 @@ def post_internship(payload: InternshipCreate, db: Session = Depends(get_db)):
     db.refresh(new_internship)
     return {"message": "Internship posted successfully", "internship_id": new_internship.internship_id}
 
-@router.get("")
-@router.get("/")
+@router.get("/internship")
+@router.get("/internship/")
 def get_all_internships(db: Session = Depends(get_db)):
     internships = db.query(Internship).all()
     results = []
