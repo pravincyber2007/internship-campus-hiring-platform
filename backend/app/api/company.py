@@ -52,7 +52,7 @@ def get_internship_applicants(company_user_id: int, db: Session = Depends(get_db
     
     detailed_apps = []
     for app in applications:
-        student = db.query(StudentProfile).filter(StudentProfile.user_id == app.student_id).first()
+        student = db.query(StudentProfile).filter(StudentProfile.profile_id == app.student_id).first()
         internship = db.query(Internship).filter(Internship.internship_id == app.internship_id).first()
         
         detailed_apps.append({
@@ -70,7 +70,12 @@ def update_application_status(application_id: int, payload: StatusUpdate, db: Se
     application = db.query(Application).filter(Application.application_id == application_id).first()
     if not application:
         raise HTTPException(status_code=404, detail="Application not found")
-    
-    application.status = payload.status
+
+    normalized_status = payload.status.strip().lower()
+    allowed_statuses = {"applied", "onreview", "accepted", "rejected"}
+    if normalized_status not in allowed_statuses:
+        raise HTTPException(status_code=400, detail="Invalid status value")
+
+    application.status = normalized_status
     db.commit()
-    return {"message": f"Application status updated to {payload.status}"}
+    return {"message": f"Application status updated to {normalized_status}"}

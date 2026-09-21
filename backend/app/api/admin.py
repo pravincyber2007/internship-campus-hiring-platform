@@ -7,7 +7,7 @@ from app.models.application import Application
 from app.models.internship import Internship
 from app.models.company import CompanyProfile
 
-router = APIRouter(prefix="/admin", tags=["Admin"])
+router = APIRouter(tags=["Admin"])
 
 @router.get("/roster/{admin_user_id}")
 def get_admin_college_roster(admin_user_id: int, db: Session = Depends(get_db)):

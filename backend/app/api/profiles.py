@@ -8,7 +8,7 @@ from app.models.company import CompanyProfile
 from app.models.admin import AdminProfile
 from pydantic import BaseModel
 
-router = APIRouter(prefix="/profiles", tags=["Profiles"])
+router = APIRouter(tags=["Profiles"])
 
 class ProfileUpdateSchema(BaseModel):
     name: Optional[str] = None
