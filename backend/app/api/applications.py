@@ -2,77 +2,54 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.application import Application
-from app.models.student import StudentProfile
 from app.models.internship import Internship
 from app.models.company import CompanyProfile
+from app.models.student import StudentProfile
 from pydantic import BaseModel
 
-router = APIRouter(prefix="/applications", tags=["Applications"])
+router = APIRouter(tags=["Applications"])
 
 class ApplicationCreate(BaseModel):
-    student_id: int
+    student_id: int  # user_id or student profile id depending on your frontend payload
     internship_id: int
 
-class StatusUpdate(BaseModel):
-    status: str
-
-@router.post("/")
+@router.post("/applications")
+@router.post("/applications/")
 def apply_internship(payload: ApplicationCreate, db: Session = Depends(get_db)):
-    existing = db.query(Application).filter(
+    # Check if already applied
+    existing_app = db.query(Application).filter(
         Application.student_id == payload.student_id,
         Application.internship_id == payload.internship_id
     ).first()
-    if existing:
-        raise HTTPException(status_code=400, detail="You have already applied for this internship.")
+    
+    if existing_app:
+        raise HTTPException(status_code=400, detail="You have already applied for this internship")
 
-    new_app = Application(
+    new_application = Application(
         student_id=payload.student_id,
         internship_id=payload.internship_id,
-        status="Applied"
+        status="applied"  # Initial state when student clicks Apply Now
     )
-    db.add(new_app)
+    db.add(new_application)
     db.commit()
-    db.refresh(new_app)
-    return {"message": "Successfully applied for internship", "application_id": new_app.application_id}
+    db.refresh(new_application)
+    return {"message": "Applied successfully", "application_id": new_application.application_id}
 
-@router.put("/{application_id}/status")
-def update_application_status(application_id: int, payload: StatusUpdate, db: Session = Depends(get_db)):
-    app = db.query(Application).filter(Application.application_id == application_id).first()
-    if not app:
-        raise HTTPException(status_code=404, detail="Application not found")
-    
-    app.status = payload.status
-    db.commit()
-    return {"message": "Application status updated successfully"}
-
-@router.get("/student/{student_id}")
-def get_student_applications(student_id: int, db: Session = Depends(get_db)):
-    apps = db.query(Application).filter(Application.student_id == student_id).all()
-    results = []
-    for app in apps:
+@router.get("/applications/tracker/{student_id}")
+def get_student_tracker(student_id: int, db: Session = Depends(get_db)):
+    applications = db.query(Application).filter(Application.student_id == student_id).all()
+    tracker_data = []
+    for app in applications:
         internship = db.query(Internship).filter(Internship.internship_id == app.internship_id).first()
         company = db.query(CompanyProfile).filter(CompanyProfile.profile_id == internship.company_id).first() if internship else None
-        results.append({
+        
+        tracker_data.append({
             "application_id": app.application_id,
-            "internship_id": app.internship_id,
-            "internship_title": internship.title if internship else "Unknown Position",
-            "company_name": company.name if company else "Unknown Company",
+            "title": internship.title if internship else "N/A",
+            "company_name": company.name if company else "N/A",
             "domain": internship.domain if internship else "N/A",
-            "status": app.status,
-            "applied_date": str(app.applied_date)
+            "duration": internship.duration if internship else "N/A",
+            "stipend": internship.stipend if internship else 0,
+            "status": app.status  # Reflects "applied", "onreview", "accepted", or "rejected" instantly
         })
-    return results
-
-@router.get("/internship/{internship_id}/applicants")
-def get_internship_applicants(internship_id: int, db: Session = Depends(get_db)):
-    apps = db.query(Application).filter(Application.internship_id == internship_id).all()
-    results = []
-    for app in apps:
-        student = db.query(StudentProfile).filter(StudentProfile.profile_id == app.student_id).first()
-        results.append({
-            "application_id": app.application_id,
-            "status": app.status,
-            "applied_date": str(app.applied_date),
-            "student": student
-        })
-    return results
+    return tracker_data
