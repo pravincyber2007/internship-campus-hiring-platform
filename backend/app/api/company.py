@@ -4,27 +4,28 @@ from app.core.database import get_db
 from app.models.company import CompanyProfile
 from app.models.internship import Internship
 from app.models.application import Application
-from app.models.student import StudentProfile # Adjust if your student model name differs
+from app.models.student import StudentProfile
 from pydantic import BaseModel
 
 router = APIRouter(tags=["Company Portal"])
 
 class StatusUpdate(BaseModel):
-    status: str # "onreview", "accepted", "rejected"
+    status: str
 
 @router.get("/company/internships/{user_id}")
 def get_company_internships(user_id: int, db: Session = Depends(get_db)):
-    # Find company profile by user_id
+    # Look up by user_id first, with a fallback to profile_id
     company = db.query(CompanyProfile).filter(CompanyProfile.user_id == user_id).first()
     if not company:
-        raise HTTPException(status_code=404, detail="Company profile not found")
+        company = db.query(CompanyProfile).filter(CompanyProfile.profile_id == user_id).first()
+        if not company:
+            return []
     
     # Fetch internships belonging to this company's profile_id
     internships = db.query(Internship).filter(Internship.company_id == company.profile_id).all()
     
     results = []
     for i in internships:
-        # Count applicants for each internship
         applicant_count = db.query(Application).filter(Application.internship_id == i.internship_id).count()
         results.append({
             "internship_id": i.internship_id,
@@ -40,12 +41,13 @@ def get_company_internships(user_id: int, db: Session = Depends(get_db)):
 def get_internship_applicants(company_user_id: int, db: Session = Depends(get_db)):
     company = db.query(CompanyProfile).filter(CompanyProfile.user_id == company_user_id).first()
     if not company:
-        raise HTTPException(status_code=404, detail="Company profile not found")
+        company = db.query(CompanyProfile).filter(CompanyProfile.profile_id == company_user_id).first()
+        if not company:
+            return []
     
     internships = db.query(Internship).filter(Internship.company_id == company.profile_id).all()
     internship_ids = [i.internship_id for i in internships]
     
-    # Fetch all applications for this company's internships
     applications = db.query(Application).filter(Application.internship_id.in_(internship_ids)).all()
     
     detailed_apps = []
@@ -58,7 +60,7 @@ def get_internship_applicants(company_user_id: int, db: Session = Depends(get_db
             "internship_title": internship.title if internship else "Unknown",
             "student_name": student.name if student else "Student",
             "college_name": student.college_name if student else "Unknown College",
-            "status": app.status # "applied", "onreview", "accepted", "rejected"
+            "status": app.status
         })
         
     return detailed_apps
