@@ -4,11 +4,14 @@ from app.api import auth, student, internship, admin, applications, profiles, co
 
 app = FastAPI(title="Campus Internship Platform API", version="1.0.0")
 
-# Explicitly allow your frontend domain and local development
+# Explicitly allow your frontend domains and local development environments
 origins = [
     "https://internship-campus-hiring-platform-1.onrender.com",
+    "https://internship-campus-hiring-platform.onrender.com",
     "http://localhost:3000",
-    "http://localhost:5173"
+    "http://localhost:5173",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:5173"
 ]
 
 app.add_middleware(
@@ -19,13 +22,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Register all API routers with correct prefixes
 app.include_router(auth.router, prefix="/api/auth", tags=["Auth"])
-app.include_router(student.router, prefix="/api/student", tags=["Student"])
-app.include_router(internship.router, prefix="/api", tags=["Internship"])
+app.include_router(student.router, prefix="/api", tags=["Student Portal"])
+app.include_router(internship.router, prefix="/api", tags=["Internships"])
 app.include_router(admin.router, prefix="/api/admin", tags=["Admin"])
 app.include_router(applications.router, prefix="/api/applications", tags=["Applications"])
 app.include_router(profiles.router, prefix="/api/profiles", tags=["Profiles"])
-app.include_router(company.router, prefix="/api/company", tags=["Company"])
+app.include_router(company.router, prefix="/api", tags=["Company Portal"])
 
 @app.get("/")
 def read_root():
