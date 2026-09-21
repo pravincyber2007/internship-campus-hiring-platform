@@ -1,7 +1,6 @@
 import axios from 'axios';
 
-// Automatically connects to your live Render backend URL
-const API_BASE_URL = 'https://internship-campus-hiring-platform.onrender.com';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://internship-campus-hiring-platform.onrender.com';
 
 const api = axios.create({
   baseURL: API_BASE_URL,

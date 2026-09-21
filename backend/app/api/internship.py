@@ -15,7 +15,9 @@ class InternshipCreate(BaseModel):
     duration: str
 
 @router.post("/internship")
+@router.post("/internships")
 @router.post("/internship/")
+@router.post("/internships/")
 def post_internship(payload: InternshipCreate, db: Session = Depends(get_db)):
     company = db.query(CompanyProfile).filter(CompanyProfile.user_id == payload.user_id).first()
     if not company:
@@ -34,7 +36,9 @@ def post_internship(payload: InternshipCreate, db: Session = Depends(get_db)):
     return {"message": "Internship posted successfully", "internship_id": new_internship.internship_id}
 
 @router.get("/internship")
+@router.get("/internships")
 @router.get("/internship/")
+@router.get("/internships/")
 def get_all_internships(db: Session = Depends(get_db)):
     internships = db.query(Internship).all()
     results = []

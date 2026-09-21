@@ -24,12 +24,12 @@ app.add_middleware(
 
 # Register all API routers with correct prefixes
 app.include_router(auth.router, prefix="/api/auth", tags=["Auth"])
-app.include_router(student.router, prefix="/api", tags=["Student Portal"])
+app.include_router(student.router, prefix="/api/student", tags=["Student Portal"])
 app.include_router(internship.router, prefix="/api", tags=["Internships"])
 app.include_router(admin.router, prefix="/api/admin", tags=["Admin"])
 app.include_router(applications.router, prefix="/api/applications", tags=["Applications"])
 app.include_router(profiles.router, prefix="/api/profiles", tags=["Profiles"])
-app.include_router(company.router, prefix="/api", tags=["Company Portal"])
+app.include_router(company.router, prefix="/api/company", tags=["Company Portal"])
 
 @app.get("/")
 def read_root():

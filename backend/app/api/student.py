@@ -7,8 +7,8 @@ from app.models.company import CompanyProfile
 
 router = APIRouter(tags=["Student Portal"])
 
-@router.get("/student/profile/{user_id}")
-@router.get("/students/profile/{user_id}")
+@router.get("/profile/{user_id}")
+@router.get("/profiles/{user_id}")
 def get_student_profile(user_id: int, db: Session = Depends(get_db)):
     student = db.query(StudentProfile).filter(StudentProfile.user_id == user_id).first()
     if not student:
@@ -23,7 +23,6 @@ def get_student_profile(user_id: int, db: Session = Depends(get_db)):
             }
     return student
 
-@router.get("/student/internships")
 @router.get("/internships")
 def get_available_internships(db: Session = Depends(get_db)):
     internships = db.query(Internship).all()

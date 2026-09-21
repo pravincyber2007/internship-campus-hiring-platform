@@ -12,7 +12,7 @@ router = APIRouter(tags=["Company Portal"])
 class StatusUpdate(BaseModel):
     status: str
 
-@router.get("/company/internships/{user_id}")
+@router.get("/internships/{user_id}")
 def get_company_internships(user_id: int, db: Session = Depends(get_db)):
     # Look up by user_id first, with a fallback to profile_id
     company = db.query(CompanyProfile).filter(CompanyProfile.user_id == user_id).first()
@@ -37,7 +37,7 @@ def get_company_internships(user_id: int, db: Session = Depends(get_db)):
         })
     return results
 
-@router.get("/company/internship-applicants/{company_user_id}")
+@router.get("/internship-applicants/{company_user_id}")
 def get_internship_applicants(company_user_id: int, db: Session = Depends(get_db)):
     company = db.query(CompanyProfile).filter(CompanyProfile.user_id == company_user_id).first()
     if not company:
@@ -65,7 +65,7 @@ def get_internship_applicants(company_user_id: int, db: Session = Depends(get_db
         
     return detailed_apps
 
-@router.put("/company/application-status/{application_id}")
+@router.put("/application-status/{application_id}")
 def update_application_status(application_id: int, payload: StatusUpdate, db: Session = Depends(get_db)):
     application = db.query(Application).filter(Application.application_id == application_id).first()
     if not application:
