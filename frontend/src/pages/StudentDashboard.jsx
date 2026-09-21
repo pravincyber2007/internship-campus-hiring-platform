@@ -3,48 +3,84 @@ import API from '../services/api';
 import Navbar from '../components/Navbar';
 
 export default function StudentDashboard({ isAuthenticated, userRole, onLogout }) {
-  const [activeTab, setActiveTab] = useState('internships');
-  const [studentProfile, setStudentProfile] = useState(null);
+  const [studentName, setStudentName] = useState('Student');
+  const [cgpa, setCgpa] = useState('');
+  const [skills, setSkills] = useState('');
+  const [institutionCode, setInstitutionCode] = useState('');
   const [internships, setInternships] = useState([]);
-  const [applications, setApplications] = useState([]);
+  const [activeTab, setActiveTab] = useState('available');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+
+  const getStoredUserId = () => {
+    let userId = localStorage.getItem('user_id');
+    if (!userId) {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          userId = parsedUser.user_id || parsedUser.id;
+        } catch (err) {
+          console.error("Error parsing stored user", err);
+        }
+      }
+    }
+    return userId;
+  };
 
   useEffect(() => {
     const fetchStudentData = async () => {
       try {
-        const userId = localStorage.getItem('user_id');
-        if (!userId) return;
-        
-        const profileRes = await API.get(`/profiles/student/user/${userId}`).catch(() => null);
-        if (profileRes) {
-          setStudentProfile(profileRes.data);
-          const appsRes = await API.get(`/applications/student/${profileRes.data.profile_id}`).catch(() => ({ data: [] }));
-          setApplications(appsRes.data);
+        setError('');
+        const userId = getStoredUserId();
+        if (!userId) {
+          setError("User ID not found. Please log in again.");
+          return;
         }
 
-        const internshipsRes = await API.get('/internships/').catch(() => ({ data: [] }));
-        setInternships(internshipsRes.data);
-      } catch {
+        // Try fetching student profile from common routes with fallbacks
+        try {
+          const profileRes = await API.get(`/api/student/students/profile/${userId}`);
+          setStudentName(profileRes.data.name || 'Student');
+          setCgpa(profileRes.data.cgpa || '');
+          setSkills(profileRes.data.skills || '');
+          setInstitutionCode(profileRes.data.college_code || profileRes.data.institution_code || '');
+        } catch {
+          try {
+            const profileRes2 = await API.get(`/api/profiles/student/user/${userId}`);
+            setStudentName(profileRes2.data.name || 'Student');
+            setCgpa(profileRes2.data.cgpa || '');
+            setSkills(profileRes2.data.skills || '');
+            setInstitutionCode(profileRes2.data.college_code || profileRes2.data.institution_code || '');
+          } catch (profileErr) {
+            console.warn("Could not load student profile details, using defaults.", profileErr);
+          }
+        }
+
+        // Fetch available internships
+        const internshipRes = await API.get('/api/internship');
+        setInternships(internshipRes.data || []);
+      } catch (err) {
+        console.error("Student dashboard fetch error:", err);
         setError("Could not load student dashboard data.");
       }
     };
+
     fetchStudentData();
-  }, [activeTab]);
+  }, []);
 
   const handleApply = async (internshipId) => {
     setMessage('');
     setError('');
+    const userId = getStoredUserId();
     try {
-      await API.post('/applications/', {
-        student_id: studentProfile.profile_id,
+      await API.post('/api/applications/', {
+        student_id: parseInt(userId, 10),
         internship_id: internshipId
       });
       setMessage("Successfully applied for internship!");
-      const appsRes = await API.get(`/applications/student/${studentProfile.profile_id}`);
-      setApplications(appsRes.data);
     } catch (err) {
-      setError(err.response?.data?.detail || "Failed to submit application.");
+      setError(err.response?.data?.detail || "Failed to apply for internship.");
     }
   };
 
@@ -54,97 +90,50 @@ export default function StudentDashboard({ isAuthenticated, userRole, onLogout }
       
       <div style={{ padding: '3rem 2rem', maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
         
+        {/* Profile Card */}
         <div style={{ background: '#fff', padding: '1.5rem 2rem', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <h1 style={{ fontSize: '1.75rem', fontWeight: '700', color: '#0f172a' }}>Welcome Back, {studentProfile?.name || 'Student'}</h1>
-            <p style={{ color: '#64748b', fontSize: '0.9rem' }}>Institution Code: <strong>{studentProfile?.college_code}</strong> ({studentProfile?.college_name})</p>
+            <h1 style={{ fontSize: '1.75rem', fontWeight: '700', color: '#0f172a', marginBottom: '0.3rem' }}>Welcome Back, {studentName}</h1>
+            <p style={{ color: '#64748b', fontSize: '0.9rem' }}>Institution Code: {institutionCode || 'N/A'}</p>
           </div>
-          <div style={{ textAlign: 'right', fontSize: '0.85rem', color: '#475569' }}>
-            <div>CGPA: <strong>{studentProfile?.cgpa}</strong></div>
-            <div>Skills: {studentProfile?.skills}</div>
+          <div style={{ textAlign: 'right', color: '#334155', fontSize: '0.95rem' }}>
+            <div><strong>CGPA:</strong> {cgpa || 'N/A'}</div>
+            <div style={{ marginTop: '0.2rem' }}><strong>Skills:</strong> {skills || 'N/A'}</div>
           </div>
-        </div>
-
-        <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
-          <button onClick={() => setActiveTab('internships')} style={{ padding: '0.75rem 1.5rem', borderRadius: '8px', border: 'none', background: activeTab === 'internships' ? '#2563eb' : '#fff', color: activeTab === 'internships' ? '#fff' : '#334155', fontWeight: '600', cursor: 'pointer', border: activeTab === 'internships' ? 'none' : '1px solid #cbd5e1' }}>
-            💼 Available Internships
-          </button>
-          <button onClick={() => setActiveTab('status')} style={{ padding: '0.75rem 1.5rem', borderRadius: '8px', border: 'none', background: activeTab === 'status' ? '#2563eb' : '#fff', color: activeTab === 'status' ? '#fff' : '#334155', fontWeight: '600', cursor: 'pointer', border: activeTab === 'status' ? 'none' : '1px solid #cbd5e1' }}>
-            📊 Internship Status Tracker
-          </button>
         </div>
 
         {error && <div style={{ background: '#fef2f2', color: '#dc2626', padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem' }}>{error}</div>}
         {message && <div style={{ background: '#f0fdf4', color: '#16a34a', padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem' }}>{message}</div>}
 
-        {activeTab === 'internships' && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem' }}>
-            {internships.length === 0 ? (
-              <p style={{ color: '#64748b' }}>No internship opportunities posted yet.</p>
-            ) : (
-              internships.map(i => {
-                const hasApplied = applications.some(app => app.internship_id === i.internship_id);
-                return (
-                  <div key={i.internship_id} style={{ background: '#fff', padding: '1.5rem', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                    <div>
-                      <div style={{ fontSize: '0.8rem', fontWeight: '700', color: '#16a34a', textTransform: 'uppercase', marginBottom: '0.2rem' }}>🏢 {i.company_name}</div>
-                      <h3 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#0f172a', marginBottom: '0.3rem' }}>{i.title}</h3>
-                      <div style={{ fontSize: '0.9rem', color: '#2563eb', fontWeight: '500', marginBottom: '0.75rem' }}>Domain: {i.domain}</div>
-                      <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '1rem' }}>Stipend: ₹{i.stipend} / month • Duration: {i.duration}</p>
-                    </div>
-                    <button 
-                      onClick={() => handleApply(i.internship_id)} 
-                      disabled={hasApplied} 
-                      style={{ width: '100%', background: hasApplied ? '#94a3b8' : '#2563eb', color: '#fff', border: 'none', padding: '0.6rem', borderRadius: '6px', fontWeight: '600', cursor: hasApplied ? 'not-allowed' : 'pointer' }}
-                    >
-                      {hasApplied ? 'Applied' : 'Apply Now'}
-                    </button>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        )}
+        <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
+          <button onClick={() => setActiveTab('available')} style={{ padding: '0.75rem 1.5rem', borderRadius: '8px', border: activeTab === 'available' ? 'none' : '1px solid #cbd5e1', background: activeTab === 'available' ? '#2563eb' : '#fff', color: activeTab === 'available' ? '#fff' : '#334155', fontWeight: '600', cursor: 'pointer' }}>
+            💼 Available Internships
+          </button>
+        </div>
 
-        {activeTab === 'status' && (
-          <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', overflow: 'hidden' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.95rem' }}>
-              <thead>
-                <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                  <th style={{ padding: '1rem 1.5rem', fontWeight: '600' }}>Internship & Company</th>
-                  <th style={{ padding: '1rem 1.5rem', fontWeight: '600' }}>Domain</th>
-                  <th style={{ padding: '1rem 1.5rem', fontWeight: '600' }}>Status</th>
-                  <th style={{ padding: '1rem 1.5rem', fontWeight: '600' }}>Applied Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {applications.length === 0 ? (
-                  <tr><td colSpan="4" style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>You have not applied for any internships yet.</td></tr>
-                ) : (
-                  applications.map(app => (
-                    <tr key={app.application_id} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                      <td style={{ padding: '1rem 1.5rem' }}>
-                        <div style={{ fontWeight: '600', color: '#0f172a' }}>{app.internship_title}</div>
-                        <div style={{ fontSize: '0.85rem', color: '#16a34a', fontWeight: '500' }}>🏢 {app.company_name}</div>
-                      </td>
-                      <td style={{ padding: '1rem 1.5rem', color: '#64748b' }}>{app.domain}</td>
-                      <td style={{ padding: '1rem 1.5rem', fontWeight: '600' }}>
-                        <span style={{ 
-                          background: app.status === 'Accepted' ? '#f0fdf4' : app.status === 'Rejected' ? '#fef2f2' : '#eff6ff', 
-                          color: app.status === 'Accepted' ? '#16a34a' : app.status === 'Rejected' ? '#dc2626' : '#2563eb',
-                          padding: '0.3rem 0.75rem', borderRadius: '20px', border: '1px solid #cbd5e1' 
-                        }}>
-                          {app.status}
-                        </span>
-                      </td>
-                      <td style={{ padding: '1rem 1.5rem', color: '#64748b' }}>{app.applied_date || 'N/A'}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
+        {/* Internships List */}
+        <div>
+          {internships.length === 0 ? (
+            <div style={{ background: '#fff', padding: '2rem', borderRadius: '12px', border: '1px solid #e2e8f0', textAlign: 'center', color: '#64748b' }}>
+              No internship opportunities posted yet.
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem' }}>
+              {internships.map(i => (
+                <div key={i.internship_id} style={{ background: '#fff', padding: '1.5rem', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                  <div>
+                    <h3 style={{ fontSize: '1.2rem', fontWeight: '600', color: '#0f172a', marginBottom: '0.5rem' }}>{i.title}</h3>
+                    <p style={{ color: '#2563eb', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.5rem' }}>{i.company_name || 'Company'}</p>
+                    <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '1rem' }}>Domain: {i.domain} • Stipend: ₹{i.stipend} / mo • Duration: {i.duration}</p>
+                  </div>
+                  <button onClick={() => handleApply(i.internship_id)} style={{ background: '#16a34a', color: '#fff', border: 'none', padding: '0.6rem 1rem', borderRadius: '6px', fontWeight: '600', cursor: 'pointer' }}>
+                    Apply Now
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
       </div>
     </div>

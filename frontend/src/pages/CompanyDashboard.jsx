@@ -13,7 +13,6 @@ export default function CompanyDashboard({ isAuthenticated, userRole, onLogout }
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
-  // Helper function to safely extract user ID from localStorage
   const getStoredUserId = () => {
     let userId = localStorage.getItem('user_id');
     if (!userId) {
@@ -40,9 +39,6 @@ export default function CompanyDashboard({ isAuthenticated, userRole, onLogout }
           return;
         }
         
-        setCompanyName('Recruiter');
-
-        // 1. Try fetching company profile to get the specific profile_id
         let profileId = null;
         try {
           const profileRes = await API.get(`/api/company/user/${userId}`);
@@ -50,23 +46,27 @@ export default function CompanyDashboard({ isAuthenticated, userRole, onLogout }
             setCompanyName(profileRes.data.name || 'Recruiter');
             profileId = profileRes.data.profile_id || profileRes.data.id;
           }
-        } catch (e) {
-          console.warn("Could not fetch company profile directly, using userId as fallback");
-          profileId = userId;
+        } catch {
+          try {
+            const profileRes2 = await API.get(`/api/profiles/company/user/${userId}`);
+            if (profileRes2.data) {
+              setCompanyName(profileRes2.data.name || 'Recruiter');
+              profileId = profileRes2.data.profile_id || profileRes2.data.id;
+            }
+          } catch {
+            profileId = userId;
+          }
         }
 
-        // 2. Fetch all internships using the correct singular endpoint
+        // Fetch all internships and match by company_id or user_id
         const listRes = await API.get('/api/internship');
-        
-        // 3. Filter safely by matching company_id or user_id
         const compInternships = listRes.data.filter(i => 
           String(i.company_id) === String(profileId) || String(i.user_id) === String(userId)
         );
-        
         setInternships(compInternships);
       } catch (err) {
-        console.error("Dashboard fetch error details:", err.response || err);
-        setError("Could not load company dashboard data. Please check your backend connection.");
+        console.error("Dashboard fetch error:", err);
+        setError("Could not load company dashboard data.");
       }
     };
     fetchCompanyData();
@@ -84,7 +84,6 @@ export default function CompanyDashboard({ isAuthenticated, userRole, onLogout }
     }
 
     try {
-      // Use singular endpoint matching backend configuration
       await API.post('/api/internship', {
         user_id: parseInt(userId, 10),
         title: formData.title,
@@ -94,6 +93,11 @@ export default function CompanyDashboard({ isAuthenticated, userRole, onLogout }
       });
       setMessage("Internship posted successfully!");
       setFormData({ title: '', domain: '', stipend: '', duration: '' });
+      
+      // Refresh the list immediately after posting
+      const listRes = await API.get('/api/internship');
+      const compInternships = listRes.data.filter(i => String(i.user_id) === String(userId));
+      setInternships(compInternships);
     } catch (err) {
       setError(err.response?.data?.detail || "Failed to post internship.");
     }
