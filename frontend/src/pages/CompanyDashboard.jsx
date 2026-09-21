@@ -43,7 +43,7 @@ export default function CompanyDashboard({ isAuthenticated, userRole, onLogout }
         setCompanyName('Recruiter');
 
         // FIXED: Changed from /api/internships/ to /api/internship (singular)
-        const listRes = await API.get('/api/internship');
+        const listRes = await API.get('/api/internships');
         const compInternships = listRes.data.filter(i => String(i.user_id) === String(userId));
         setInternships(compInternships);
       } catch (err) {
@@ -67,7 +67,7 @@ export default function CompanyDashboard({ isAuthenticated, userRole, onLogout }
 
     try {
       // FIXED: Changed from /api/internships/ to /api/internship (singular)
-      await API.post('/api/internship', {
+      await API.post('/api/internships', {
         user_id: parseInt(userId, 10),
         title: formData.title,
         domain: formData.domain,
@@ -84,7 +84,7 @@ export default function CompanyDashboard({ isAuthenticated, userRole, onLogout }
   const handleSelectInternship = async (internship) => {
     setSelectedInternship(internship);
     try {
-      const res = await API.get(`/api/applications/internship/${internship.internship_id}/applicants`);
+      const res = await API.get(`/api/applications/internships/${internship.internship_id}/applicants`);
       setApplicants(res.data);
     } catch {
       setApplicants([]);
@@ -94,7 +94,7 @@ export default function CompanyDashboard({ isAuthenticated, userRole, onLogout }
   const handleStatusChange = async (applicationId, newStatus) => {
     try {
       await API.put(`/api/applications/${applicationId}/status`, { status: newStatus });
-      const res = await API.get(`/api/applications/internship/${selectedInternship.internship_id}/applicants`);
+      const res = await API.get(`/api/applications/internships/${selectedInternship.internship_id}/applicants`);
       setApplicants(res.data);
     } catch {
       alert("Failed to update status.");

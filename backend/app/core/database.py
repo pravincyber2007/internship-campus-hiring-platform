@@ -1,9 +1,10 @@
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from app.core.config import settings
 
-DATABASE_URL = settings.DATABASE_URL
+# Bypass Railway environment variables entirely by pasting your live cloud URL directly here:
+DATABASE_URL = "postgresql://postgres:pravin123@localhost:5432/campus_internship_db"
 
 # Force psycopg v3 driver format
 if DATABASE_URL.startswith("postgres://"):

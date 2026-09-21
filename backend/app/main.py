@@ -16,7 +16,7 @@ app.add_middleware(
 # Include all feature routers safely
 app.include_router(auth.router, prefix="/api/auth", tags=["Auth"])
 app.include_router(student.router, prefix="/api/student", tags=["Student"])
-app.include_router(internship.router, prefix="/api/internship", tags=["Internship"])
+app.include_router(internship.router, prefix="/api/internships", tags=["Internship"])
 app.include_router(admin.router, prefix="/api/admin", tags=["Admin"])
 app.include_router(applications.router, prefix="/api/applications", tags=["Applications"])
 app.include_router(profiles.router, prefix="/api/profiles", tags=["Profiles"])
