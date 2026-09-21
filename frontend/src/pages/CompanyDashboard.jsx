@@ -13,11 +13,29 @@ export default function CompanyDashboard({ isAuthenticated, userRole, onLogout }
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
+  // Helper function to safely extract user ID from localStorage
+  const getStoredUserId = () => {
+    let userId = localStorage.getItem('user_id');
+    if (!userId) {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          userId = parsedUser.user_id || parsedUser.id;
+        } catch (err) {
+          console.error("Error parsing stored user", err);
+        }
+      }
+    }
+    return userId;
+  };
+
   useEffect(() => {
     const fetchCompanyData = async () => {
       try {
-        const userId = localStorage.getItem('user_id');
+        const userId = getStoredUserId();
         if (!userId) return;
+        
         const profileRes = await API.get(`/profiles/company/user/${userId}`);
         setCompanyName(profileRes.data.name);
 
@@ -35,19 +53,25 @@ export default function CompanyDashboard({ isAuthenticated, userRole, onLogout }
     e.preventDefault();
     setMessage('');
     setError('');
+
+    const userId = getStoredUserId();
+    if (!userId) {
+      setError("User session not found. Please log in again.");
+      return;
+    }
+
     try {
-      const userId = localStorage.getItem('user_id');
       await API.post('/internships/', {
-        user_id: parseInt(userId),
+        user_id: parseInt(userId, 10),
         title: formData.title,
         domain: formData.domain,
-        stipend: parseInt(formData.stipend),
+        stipend: parseInt(formData.stipend, 10),
         duration: formData.duration
       });
       setMessage("Internship posted successfully!");
       setFormData({ title: '', domain: '', stipend: '', duration: '' });
-    } catch {
-      setError("Failed to post internship.");
+    } catch (err) {
+      setError(err.response?.data?.detail || "Failed to post internship.");
     }
   };
 
@@ -64,7 +88,6 @@ export default function CompanyDashboard({ isAuthenticated, userRole, onLogout }
   const handleStatusChange = async (applicationId, newStatus) => {
     try {
       await API.put(`/applications/${applicationId}/status`, { status: newStatus });
-      // Refresh applicants list
       const res = await API.get(`/applications/internship/${selectedInternship.internship_id}/applicants`);
       setApplicants(res.data);
     } catch {
