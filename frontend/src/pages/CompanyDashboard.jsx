@@ -42,12 +42,30 @@ export default function CompanyDashboard({ isAuthenticated, userRole, onLogout }
         
         setCompanyName('Recruiter');
 
-        // Uses the correct singular /api/internship route matching your backend
+        // 1. Try fetching company profile to get the specific profile_id
+        let profileId = null;
+        try {
+          const profileRes = await API.get(`/api/company/user/${userId}`);
+          if (profileRes.data) {
+            setCompanyName(profileRes.data.name || 'Recruiter');
+            profileId = profileRes.data.profile_id || profileRes.data.id;
+          }
+        } catch (e) {
+          console.warn("Could not fetch company profile directly, using userId as fallback");
+          profileId = userId;
+        }
+
+        // 2. Fetch all internships using the correct singular endpoint
         const listRes = await API.get('/api/internship');
-        const compInternships = listRes.data.filter(i => String(i.user_id) === String(userId));
+        
+        // 3. Filter safely by matching company_id or user_id
+        const compInternships = listRes.data.filter(i => 
+          String(i.company_id) === String(profileId) || String(i.user_id) === String(userId)
+        );
+        
         setInternships(compInternships);
       } catch (err) {
-        console.error("Dashboard fetch error:", err);
+        console.error("Dashboard fetch error details:", err.response || err);
         setError("Could not load company dashboard data. Please check your backend connection.");
       }
     };
@@ -66,7 +84,7 @@ export default function CompanyDashboard({ isAuthenticated, userRole, onLogout }
     }
 
     try {
-      // Uses the correct singular /api/internship route matching your backend
+      // Use singular endpoint matching backend configuration
       await API.post('/api/internship', {
         user_id: parseInt(userId, 10),
         title: formData.title,
