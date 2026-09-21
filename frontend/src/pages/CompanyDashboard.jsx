@@ -36,7 +36,7 @@ export default function CompanyDashboard({ isAuthenticated, userRole, onLogout }
         const userId = getStoredUserId();
         if (!userId) return;
         
-        const profileRes = await API.get(`/profiles/company/user/${userId}`);
+        const profileRes = await API.get(`/api/profiles/company/user/${userId}`);
         setCompanyName(profileRes.data.name);
 
         const listRes = await API.get('/internships/');
