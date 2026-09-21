@@ -5,7 +5,7 @@ from app.models.company import CompanyProfile
 from app.models.internship import Internship
 from pydantic import BaseModel
 
-# Defined without a duplicate prefix so it maps cleanly to /api/internship from main.py
+# No duplicate prefix here so it maps precisely to /api/internship from main.py
 router = APIRouter(tags=["Internships"])
 
 class InternshipCreate(BaseModel):
