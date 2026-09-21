@@ -40,24 +40,11 @@ export default function CompanyDashboard({ isAuthenticated, userRole, onLogout }
           return;
         }
         
-        // CHANGED: Ensure this matches your exact backend route prefix 
-        // (e.g., if your backend uses /api/company/user/ or /api/profiles/)
-        let profileId = null;
-        try {
-          const profileRes = await API.get(`/api/company/user/${userId}`);
-          setCompanyName(profileRes.data.name || 'Recruiter');
-          profileId = profileRes.data.profile_id || profileRes.data.id;
-        } catch (profileErr) {
-          console.warn("Could not fetch company profile directly, trying fallback route:", profileErr);
-          // Fallback if your route uses a different path structure
-          const fallbackRes = await API.get(`/api/profiles/company/user/${userId}`);
-          setCompanyName(fallbackRes.data.name || 'Recruiter');
-          profileId = fallbackRes.data.profile_id || fallbackRes.data.id;
-        }
+        setCompanyName('Recruiter');
 
-        // Fetch all internships and filter by this company's ID
+        // Fetch all internships directly and filter by the logged-in user's ID
         const listRes = await API.get('/api/internships/');
-        const compInternships = listRes.data.filter(i => i.company_id === profileId || i.user_id === parseInt(userId, 10));
+        const compInternships = listRes.data.filter(i => String(i.user_id) === String(userId));
         setInternships(compInternships);
       } catch (err) {
         console.error("Dashboard fetch error:", err);
