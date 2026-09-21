@@ -33,16 +33,23 @@ export default function CompanyDashboard({ isAuthenticated, userRole, onLogout }
   useEffect(() => {
     const fetchCompanyData = async () => {
       try {
+        setError('');
         const userId = getStoredUserId();
-        if (!userId) return;
+        if (!userId) {
+          setError("User ID not found. Please log in again.");
+          return;
+        }
         
+        // Added /api/ prefix
         const profileRes = await API.get(`/api/profiles/company/user/${userId}`);
         setCompanyName(profileRes.data.name);
 
-        const listRes = await API.get('/internships/');
+        // Added /api/ prefix
+        const listRes = await API.get('/api/internships/');
         const compInternships = listRes.data.filter(i => i.company_id === profileRes.data.profile_id);
         setInternships(compInternships);
-      } catch {
+      } catch (err) {
+        console.error("Dashboard fetch error:", err);
         setError("Could not load company dashboard data.");
       }
     };
@@ -61,7 +68,8 @@ export default function CompanyDashboard({ isAuthenticated, userRole, onLogout }
     }
 
     try {
-      await API.post('/internships/', {
+      // Added /api/ prefix
+      await API.post('/api/internships/', {
         user_id: parseInt(userId, 10),
         title: formData.title,
         domain: formData.domain,
@@ -78,7 +86,8 @@ export default function CompanyDashboard({ isAuthenticated, userRole, onLogout }
   const handleSelectInternship = async (internship) => {
     setSelectedInternship(internship);
     try {
-      const res = await API.get(`/applications/internship/${internship.internship_id}/applicants`);
+      // Added /api/ prefix
+      const res = await API.get(`/api/applications/internship/${internship.internship_id}/applicants`);
       setApplicants(res.data);
     } catch {
       setApplicants([]);
@@ -87,8 +96,9 @@ export default function CompanyDashboard({ isAuthenticated, userRole, onLogout }
 
   const handleStatusChange = async (applicationId, newStatus) => {
     try {
-      await API.put(`/applications/${applicationId}/status`, { status: newStatus });
-      const res = await API.get(`/applications/internship/${selectedInternship.internship_id}/applicants`);
+      // Added /api/ prefix
+      await API.put(`/api/applications/${applicationId}/status`, { status: newStatus });
+      const res = await API.get(`/api/applications/internship/${selectedInternship.internship_id}/applicants`);
       setApplicants(res.data);
     } catch {
       alert("Failed to update status.");
