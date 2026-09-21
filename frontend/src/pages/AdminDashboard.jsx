@@ -11,7 +11,7 @@ export default function AdminDashboard({ isAuthenticated, userRole, onLogout }) 
       try {
         const userId = localStorage.getItem('user_id');
         if (!userId) return;
-        const response = await API.get(`/admin/roster/${userId}`);
+        const response = await API.get(`/api/admin/roster/${userId}`);
         setRosterData(response.data);
       } catch {
         setError("Could not load institutional roster data.");

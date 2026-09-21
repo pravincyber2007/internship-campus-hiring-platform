@@ -50,7 +50,7 @@ export default function StudentDashboard({ isAuthenticated, userRole, onLogout }
         }
 
         // Fetch available internships
-        const internshipRes = await API.get('/api/internship');
+        const internshipRes = await API.get('/api/internships');
         setInternships(internshipRes.data || []);
       } catch (err) {
         console.error("Student dashboard fetch error:", err);

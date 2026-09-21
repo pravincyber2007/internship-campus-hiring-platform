@@ -32,9 +32,9 @@ export default function Navbar({ isAuthenticated, userRole, onLogout }) {
     try {
       const userId = localStorage.getItem('user_id');
       let endpoint = '';
-      if (userRole === 'student') endpoint = `/profiles/student/user/${userId}`;
-      else if (userRole === 'company') endpoint = `/profiles/company/user/${userId}`;
-      else if (userRole === 'admin') endpoint = `/profiles/admin/user/${userId}`;
+      if (userRole === 'student') endpoint = `/api/profiles/student/user/${userId}`;
+      else if (userRole === 'company') endpoint = `/api/profiles/company/user/${userId}`;
+      else if (userRole === 'admin') endpoint = `/api/profiles/admin/user/${userId}`;
 
       const res = await API.get(endpoint);
       setProfileData(res.data);
@@ -49,9 +49,9 @@ export default function Navbar({ isAuthenticated, userRole, onLogout }) {
     try {
       const userId = localStorage.getItem('user_id');
       let endpoint = '';
-      if (userRole === 'student') endpoint = `/profiles/student/user/${userId}`;
-      else if (userRole === 'company') endpoint = `/profiles/company/user/${userId}`;
-      else if (userRole === 'admin') endpoint = `/profiles/admin/user/${userId}`;
+      if (userRole === 'student') endpoint = `/api/profiles/student/user/${userId}`;
+      else if (userRole === 'company') endpoint = `/api/profiles/company/user/${userId}`;
+      else if (userRole === 'admin') endpoint = `/api/profiles/admin/user/${userId}`;
 
       await API.put(endpoint, profileData);
       alert("Profile updated successfully!");
@@ -65,7 +65,7 @@ export default function Navbar({ isAuthenticated, userRole, onLogout }) {
   const handleDeleteAccount = async () => {
     try {
       const userId = localStorage.getItem('user_id');
-      await API.delete(`/profiles/user/${userId}`);
+      await API.delete(`/api/profiles/user/${userId}`);
       onLogout();
     } catch {
       alert("Failed to delete account.");
